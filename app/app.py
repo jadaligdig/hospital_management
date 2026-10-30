@@ -1,5 +1,5 @@
 import pymysql
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 from db import get_connection
 
 app = Flask(__name__)
@@ -51,6 +51,41 @@ def lab_tests_never_ordered():
     connection.close()
     return render_template("table.html", title="Lab tests never ordered",
                            headings=["Test name", "Price"], rows=rows)
+
+@app.route("/lab-tests/edit/<int:test_id>", methods=["GET", "POST"])
+def edit_lab_test(test_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    if request.method == "POST":
+        price = request.form["price"]
+
+        try:
+            cursor.execute(
+                "UPDATE lab_tests SET price = %s WHERE test_id = %s",
+                (price, test_id)
+            )
+            connection.commit()
+            message = "Lab test updated."
+
+        except pymysql.MySQLError as error:
+            message = "Could not update: " + str(error.args[1])
+
+        connection.close()
+        return redirect(url_for("lab_tests", message=message))
+
+    # GET request: runs only when not POST
+    cursor.execute(
+        "SELECT test_id, test_name, price FROM lab_tests WHERE test_id = %s",
+        (test_id,)
+    )
+    lab_test = cursor.fetchone()
+    connection.close()
+
+    if lab_test is None:
+        abort(404)
+
+    return render_template("edit_lab_test.html", lab_test=lab_test)
 
 if __name__ == "__main__":
     app.run(debug=True)
