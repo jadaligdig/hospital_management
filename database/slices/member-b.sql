@@ -33,3 +33,26 @@ CREATE TABLE users (
     CONSTRAINT fk_user_doctor FOREIGN KEY (doctor_id)
         REFERENCES doctors(doctor_id)
 );
+
+-- Sample data for Member B
+
+-- Departments
+INSERT INTO departments (dept_name, location)
+VALUES
+('Cardiology', 'Building A'),
+('Pediatrics', 'Building B'),
+('Neurology', 'Building C');
+
+-- Doctors
+INSERT INTO doctors
+(department_id, first_name, last_name, specialization, phone)
+VALUES
+(1, 'Juan', 'Santos', 'Cardiologist', '09171234567'),
+(2, 'Maria', 'Reyes', 'Pediatrician', '09181234567');
+
+-- Users
+INSERT INTO users
+(username, password_hash, role, doctor_id)
+VALUES
+('juan.santos', 'sample_hash_123', 'Doctor', 1),
+('Jehrryne.nurse', 'sample_hash_456', 'Nurse', NULL);
