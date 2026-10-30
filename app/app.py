@@ -87,5 +87,18 @@ def edit_lab_test(test_id):
 
     return render_template("edit_lab_test.html", lab_test=lab_test)
 
+@app.route("/lab-tests/delete/<int:test_id>", methods=["POST"])
+def delete_lab_test(test_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM lab_tests WHERE test_id = %s", (test_id,))
+        connection.commit()
+        message = "Lab test deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("lab_tests", message=message))
+
 if __name__ == "__main__":
     app.run(debug=True)
