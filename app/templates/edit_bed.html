@@ -1,0 +1,12 @@
+<h1>Edit bed {{ bed[2] }}</h1>
+
+<form method="post">
+  <select name="status">
+    {% for s in ['Available', 'Occupied', 'Maintenance'] %}
+      <option value="{{ s }}" {% if bed[3] == s %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <button>Save</button>
+</form>
+
+<a href="/beds">Back</a>

@@ -137,5 +137,68 @@ def departments_rooms():
 def home():
     return render_template("index.html")
 
+@app.route("/beds")
+def beds():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT bed_id, room_id, bed_no, status FROM beds ORDER BY room_id, bed_no")
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("beds.html", beds=rows, message=message)
+
+@app.route("/beds/add", methods=["POST"])
+def add_bed():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("INSERT INTO beds (room_id, bed_no) VALUES (%s, %s)",
+                       (request.form["room_id"], request.form["bed_no"]))
+        connection.commit()
+        message = "Bed added."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("beds", message=message))
+
+@app.route("/beds/edit/<int:bed_id>", methods=["GET", "POST"])
+def edit_bed(bed_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    if request.method == "POST":
+        try:
+            cursor.execute("UPDATE beds SET status = %s WHERE bed_id = %s",
+                           (request.form["status"], bed_id))
+            connection.commit()
+            message = "Bed updated."
+        except pymysql.MySQLError as error:
+            message = "Could not update: " + str(error.args[1])
+        connection.close()
+        return redirect(url_for("beds", message=message))
+    cursor.execute("SELECT bed_id, room_id, bed_no, status FROM beds WHERE bed_id = %s", (bed_id,))
+    bed = cursor.fetchone()
+    connection.close()
+    if bed is None:
+        abort(404)
+    return render_template("edit_bed.html", bed=bed)
+
+@app.route("/beds/delete/<int:bed_id>", methods=["POST"])
+def delete_bed(bed_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT status FROM beds WHERE bed_id = %s", (bed_id,))
+    bed = cursor.fetchone()
+    if bed and bed[0] == "Occupied":
+        message = "Cannot delete an occupied bed."
+    else:
+        try:
+            cursor.execute("DELETE FROM beds WHERE bed_id = %s", (bed_id,))
+            connection.commit()
+            message = "Bed deleted."
+        except pymysql.MySQLError as error:
+            message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("beds", message=message))
+
 if __name__ == "__main__":
     app.run(debug=True)
