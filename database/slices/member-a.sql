@@ -43,3 +43,4 @@ INSERT INTO appointments (appointment_id, patient_id, appointment_date, status) 
 INSERT INTO medical_records (record_id, patient_id, diagnosis, treatment, record_date) VALUES
 (1001, 3, 'Hypertension', 'Prescribed Lisinopril 10mg daily and advised on low-sodium diet.', '2026-10-15'),
 (1002, 1, 'Acute Bronchitis', 'Prescribed Amoxicillin and cough suppressant. Rest for 5 days.', '2026-10-20');
+);
