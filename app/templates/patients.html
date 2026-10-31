@@ -1,0 +1,32 @@
+<h1>Patients</h1>
+
+{% if message %}
+<p style="color:red">{{ message }}</p>
+{% endif %}
+
+<form method="post" action="/patients/add">
+  <input name="first_name" placeholder="First name">
+  <input name="last_name" placeholder="Last name">
+  <input name="birth_date" type="date">
+  <select name="gender"><option>M</option><option>F</option></select>
+  <input name="phone" placeholder="Phone">
+  <input name="address" placeholder="Address">
+  <button>Add</button>
+</form>
+
+<table border="1">
+  <tr><th>First</th><th>Last</th><th>Birth date</th><th>Gender</th><th>Phone</th><th>Address</th><th></th><th></th></tr>
+  {% for p in patients %}
+    <tr>
+      <td>{{ p[1] }}</td><td>{{ p[2] }}</td><td>{{ p[3] }}</td>
+      <td>{{ p[4] }}</td><td>{{ p[5] }}</td><td>{{ p[6] }}</td>
+      <td><a href="/patients/edit/{{ p[0] }}">Edit</a></td>
+      <td>
+        <form method="post" action="/patients/delete/{{ p[0] }}"
+              onsubmit="return confirm('Delete this patient?')">
+          <button>Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
