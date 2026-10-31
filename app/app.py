@@ -133,5 +133,9 @@ def departments_rooms():
     return render_template("table.html", title="Departments vs rooms",
         headings=["Department", "Room"], rows=rows)
 
+@app.route("/")
+def home():
+    return render_template("index.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
