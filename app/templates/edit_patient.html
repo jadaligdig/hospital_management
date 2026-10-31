@@ -1,0 +1,17 @@
+<h1>Edit patient {{ patient[1] }} {{ patient[2] }}</h1>
+
+<form method="post">
+  <input name="first_name" value="{{ patient[1] }}">
+  <input name="last_name" value="{{ patient[2] }}">
+  <input name="birth_date" type="date" value="{{ patient[3] }}">
+  <select name="gender">
+    {% for g in ['M', 'F'] %}
+      <option value="{{ g }}" {% if patient[4] == g %}selected{% endif %}>{{ g }}</option>
+    {% endfor %}
+  </select>
+  <input name="phone" value="{{ patient[5] or '' }}">
+  <input name="address" value="{{ patient[6] or '' }}">
+  <button>Save</button>
+</form>
+
+<a href="/patients">Back</a>

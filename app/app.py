@@ -200,5 +200,85 @@ def delete_bed(bed_id):
     connection.close()
     return redirect(url_for("beds", message=message))
 
+@app.route("/appointment-schedule")
+def appointment_schedule():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT a.appointment_id, p.first_name, p.last_name, d.last_name,
+               a.appt_datetime, a.status, a.reason
+        FROM appointments a
+        INNER JOIN patients p ON a.patient_id = p.patient_id
+        INNER JOIN doctors d ON a.doctor_id = d.doctor_id
+        ORDER BY a.appt_datetime
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("table.html", title="Appointment schedule",
+        headings=["ID", "Patient first", "Patient last", "Doctor", "Date and time", "Status", "Reason"],
+        rows=rows)
+
+@app.route("/patients")
+def patients():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT patient_id, first_name, last_name, birth_date, gender, phone, address FROM patients")
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("patients.html", patients=rows, message=message)
+
+@app.route("/patients/add", methods=["POST"])
+def add_patient():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO patients (first_name, last_name, birth_date, gender, phone, address) VALUES (%s, %s, %s, %s, %s, %s)",
+            (request.form["first_name"], request.form["last_name"], request.form["birth_date"],
+             request.form["gender"], request.form["phone"] or None, request.form["address"] or None))
+        connection.commit()
+        message = "Patient added."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("patients", message=message))
+
+@app.route("/patients/edit/<int:patient_id>", methods=["GET", "POST"])
+def edit_patient(patient_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    if request.method == "POST":
+        try:
+            cursor.execute(
+                "UPDATE patients SET first_name=%s, last_name=%s, birth_date=%s, gender=%s, phone=%s, address=%s WHERE patient_id=%s",
+                (request.form["first_name"], request.form["last_name"], request.form["birth_date"],
+                 request.form["gender"], request.form["phone"] or None, request.form["address"] or None, patient_id))
+            connection.commit()
+            message = "Patient updated."
+        except pymysql.MySQLError as error:
+            message = "Could not update: " + str(error.args[1])
+        connection.close()
+        return redirect(url_for("patients", message=message))
+    cursor.execute("SELECT patient_id, first_name, last_name, birth_date, gender, phone, address FROM patients WHERE patient_id = %s", (patient_id,))
+    patient = cursor.fetchone()
+    connection.close()
+    if patient is None:
+        abort(404)
+    return render_template("edit_patient.html", patient=patient)
+
+@app.route("/patients/delete/<int:patient_id>", methods=["POST"])
+def delete_patient(patient_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM patients WHERE patient_id = %s", (patient_id,))
+        connection.commit()
+        message = "Patient deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("patients", message=message))
+
 if __name__ == "__main__":
     app.run(debug=True)
