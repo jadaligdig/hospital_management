@@ -20,4 +20,15 @@ CREATE TABLE lab_orders (
     CONSTRAINT fk_lab_test FOREIGN KEY (test_id) REFERENCES lab_tests(test_id)
 );
 
+INSERT INTO lab_tests (test_name, price) VALUES
+ ('Complete Blood Count', 350.00),
+ ('Urinalysis',           150.00),
+ ('ECG',                  600.00),
+ ('Troponin I',           900.00),
+ ('Chest X-ray',          800.00);
 
+INSERT INTO lab_orders (record_id, test_id, status, result_text) VALUES
+ (5, 3, 'Completed', 'ST depression noted'),
+ (5, 4, 'Completed', 'Mildly elevated'),
+ (6, 1, 'Completed', 'WBC normal'),
+ (7, 1, 'Ordered',   NULL);
