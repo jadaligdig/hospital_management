@@ -1,0 +1,35 @@
+<h1>Beds</h1>
+
+{% if message %}
+<p style="color:red">{{ message }}</p>
+{% endif %}
+
+<form method="post" action="/beds/add">
+  <input name="room_id" type="number" placeholder="Room ID">
+  <input name="bed_no" placeholder="Bed no (e.g. B3)">
+  <button>Add</button>
+</form>
+
+<table border="1">
+  <tr>
+    <th>Room ID</th>
+    <th>Bed</th>
+    <th>Status</th>
+    <th></th>
+    <th></th>
+  </tr>
+  {% for b in beds %}
+    <tr>
+      <td>{{ b[1] }}</td>
+      <td>{{ b[2] }}</td>
+      <td>{{ b[3] }}</td>
+      <td><a href="/beds/edit/{{ b[0] }}">Edit</a></td>
+      <td>
+        <form method="post" action="/beds/delete/{{ b[0] }}"
+              onsubmit="return confirm('Delete this bed?')">
+          <button>Delete</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
