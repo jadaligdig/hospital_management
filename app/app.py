@@ -100,5 +100,38 @@ def delete_lab_test(test_id):
     connection.close()
     return redirect(url_for("lab_tests", message=message))
 
+@app.route("/bed-board")
+def bed_board():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT r.room_no, r.room_type, b.bed_no, b.status
+        FROM beds b
+        RIGHT JOIN rooms r ON b.room_id = r.room_id
+        ORDER BY r.room_no, b.bed_no
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("table.html", title="Bed board",
+        headings=["Room", "Type", "Bed", "Status"], rows=rows)
+
+@app.route("/departments-rooms")
+def departments_rooms():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT d.dept_name, r.room_no
+        FROM departments d
+        LEFT JOIN rooms r ON r.department_id = d.department_id
+        UNION
+        SELECT d.dept_name, r.room_no
+        FROM departments d
+        RIGHT JOIN rooms r ON r.department_id = d.department_id
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("table.html", title="Departments vs rooms",
+        headings=["Department", "Room"], rows=rows)
+
 if __name__ == "__main__":
     app.run(debug=True)
