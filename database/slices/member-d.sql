@@ -18,3 +18,18 @@ CREATE TABLE beds (
     CONSTRAINT uq_bed UNIQUE (room_id, bed_no),
     CONSTRAINT fk_bed_room FOREIGN KEY (room_id) REFERENCES rooms(room_id)
 );
+
+
+INSERT INTO rooms (department_id, room_no, room_type, daily_rate) VALUES
+ (3,    'W-101',  'Ward',    1500.00),
+ (4,    'P-201',  'Private', 3500.00),
+ (1,    'ICU-1',  'ICU',     8000.00),
+ (2,    'PED-1',  'Ward',    1500.00),
+ (NULL, 'G-001',  'Ward',    1200.00);
+
+INSERT INTO beds (room_id, bed_no, status) VALUES
+ (1,'B1','Available'), (1,'B2','Available'), 
+ (2,'B1','Available'),
+ (3,'B1','Available'), (3,'B2','Available'),
+ (4,'B1','Available'),
+ (5,'B1','Available'), (5,'B2','Maintenance');
