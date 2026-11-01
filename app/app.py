@@ -434,6 +434,92 @@ def add_payment():
         message = "Could not add: " + str(error.args[1])
     connection.close()
     return redirect(url_for("payments", message=message))
+@app.route("/audit-trail")
+def audit_trail():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT l.log_id, l.event_type, l.table_name, l.record_id,
+               l.details, u.username, l.logged_at
+        FROM audit_log l
+        LEFT JOIN users u ON l.performed_by = u.user_id
+        ORDER BY l.logged_at DESC
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("table.html", title="Audit trail",
+        headings=["ID", "Event", "Table", "Record", "Details", "User", "Time"],
+        rows=rows)
+
+def log_low_stock(cursor, medicine_id, stock_qty, reorder_level):
+    if int(stock_qty) <= int(reorder_level):
+        cursor.execute(
+            "INSERT INTO audit_log (event_type, table_name, record_id, details) VALUES ('LOW_STOCK', 'medicines', %s, %s)",
+            (medicine_id, "Stock " + str(stock_qty) + " is at or below reorder level " + str(reorder_level)))
+
+@app.route("/medicines")
+def medicines():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT medicine_id, medicine_name, unit_price, stock_qty, reorder_level, expiry_date FROM medicines ORDER BY medicine_name")
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("medicines.html", medicines=rows, message=message)
+
+@app.route("/medicines/add", methods=["POST"])
+def add_medicine():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO medicines (medicine_name, unit_price, stock_qty, reorder_level, expiry_date) VALUES (%s, %s, %s, %s, %s)",
+            (request.form["medicine_name"], request.form["unit_price"], request.form["stock_qty"],
+             request.form["reorder_level"], request.form["expiry_date"]))
+        log_low_stock(cursor, cursor.lastrowid, request.form["stock_qty"], request.form["reorder_level"])
+        connection.commit()
+        message = "Medicine added."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("medicines", message=message))
+
+@app.route("/medicines/edit/<int:medicine_id>", methods=["GET", "POST"])
+def edit_medicine(medicine_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    if request.method == "POST":
+        try:
+            cursor.execute(
+                "UPDATE medicines SET medicine_name=%s, unit_price=%s, stock_qty=%s, reorder_level=%s, expiry_date=%s WHERE medicine_id=%s",
+                (request.form["medicine_name"], request.form["unit_price"], request.form["stock_qty"],
+                 request.form["reorder_level"], request.form["expiry_date"], medicine_id))
+            log_low_stock(cursor, medicine_id, request.form["stock_qty"], request.form["reorder_level"])
+            connection.commit()
+            message = "Medicine updated."
+        except pymysql.MySQLError as error:
+            message = "Could not update: " + str(error.args[1])
+        connection.close()
+        return redirect(url_for("medicines", message=message))
+    cursor.execute("SELECT medicine_id, medicine_name, unit_price, stock_qty, reorder_level, expiry_date FROM medicines WHERE medicine_id = %s", (medicine_id,))
+    medicine = cursor.fetchone()
+    connection.close()
+    if medicine is None:
+        abort(404)
+    return render_template("edit_medicine.html", medicine=medicine)
+
+@app.route("/medicines/delete/<int:medicine_id>", methods=["POST"])
+def delete_medicine(medicine_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM medicines WHERE medicine_id = %s", (medicine_id,))
+        connection.commit()
+        message = "Medicine deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("medicines", message=message))
 
 if __name__ == "__main__":
     app.run(debug=True)

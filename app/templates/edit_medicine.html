@@ -1,0 +1,12 @@
+<h1>Edit {{ medicine[1] }}</h1>
+
+<form method="post">
+  <input name="medicine_name" value="{{ medicine[1] }}">
+  <input name="unit_price" type="number" step="0.01" value="{{ medicine[2] }}">
+  <input name="stock_qty" type="number" value="{{ medicine[3] }}">
+  <input name="reorder_level" type="number" value="{{ medicine[4] }}">
+  <input name="expiry_date" type="date" value="{{ medicine[5] }}">
+  <button>Save</button>
+</form>
+
+<a href="/medicines">Back</a>
