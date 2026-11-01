@@ -322,6 +322,22 @@ def delete_department(department_id):
 
 @app.route("/doctors")
 def doctors():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT d.doctor_id, d.first_name, d.last_name, d.specialization,
+               d.phone, p.dept_name
+        FROM doctors d
+        INNER JOIN departments p ON d.department_id = p.department_id
+        ORDER BY d.last_name
+    """)
+    rows = cursor.fetchall()
+    cursor.execute("SELECT department_id, dept_name FROM departments ORDER BY dept_name")
+    depts = cursor.fetchall()
+    connection.close()
+    return render_template("doctors.html", doctors=rows, departments=depts, message=message)
+
 def set_app_user(cursor, user_id):
     # same variable the sample SQL sets; the triggers read it for the audit trail
     cursor.execute("SET @app_user_id = %s", (user_id,))
@@ -529,6 +545,12 @@ def delete_user(user_id):
         message = "Could not delete: " + str(error.args[1])
     connection.close()
     return redirect(url_for("users", message=message))
+    @app.route("/invoices")
+    def invoices():
+        message = request.args.get("message")
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
         SELECT invoice_id, admission_id, invoice_date, room_charge, lab_charge,
                medicine_charge, total_amount, amount_paid, status
         FROM invoices
