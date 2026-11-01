@@ -280,5 +280,178 @@ def delete_patient(patient_id):
     connection.close()
     return redirect(url_for("patients", message=message))
 
+@app.route("/departments")
+def departments():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT department_id, dept_name, location FROM departments ORDER BY dept_name")
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("departments.html", departments=rows, message=message)
+
+
+@app.route("/departments/add", methods=["POST"])
+def add_department():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO departments (dept_name, location) VALUES (%s, %s)",
+            (request.form["dept_name"], request.form["location"]))
+        connection.commit()
+        message = "Department added."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("departments", message=message))
+
+
+@app.route("/departments/delete/<int:department_id>", methods=["POST"])
+def delete_department(department_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM departments WHERE department_id = %s", (department_id,))
+        connection.commit()
+        message = "Department deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("departments", message=message))
+
+@app.route("/doctors")
+def doctors():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT d.doctor_id, d.first_name, d.last_name, d.specialization,
+               d.phone, p.dept_name
+        FROM doctors d
+        INNER JOIN departments p ON d.department_id = p.department_id
+        ORDER BY d.last_name
+    """)
+    rows = cursor.fetchall()
+    cursor.execute("SELECT department_id, dept_name FROM departments ORDER BY dept_name")
+    depts = cursor.fetchall()
+    connection.close()
+    return render_template("doctors.html", doctors=rows, departments=depts, message=message)
+
+
+@app.route("/doctors/add", methods=["POST"])
+def add_doctor():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO doctors (department_id, first_name, last_name, specialization, phone) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            (request.form["department_id"], request.form["first_name"],
+             request.form["last_name"], request.form["specialization"],
+             request.form["phone"]))
+        connection.commit()
+        message = "Doctor added."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("doctors", message=message))
+
+
+@app.route("/doctors/edit/<int:doctor_id>", methods=["GET", "POST"])
+def edit_doctor(doctor_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    if request.method == "POST":
+        try:
+            cursor.execute(
+                "UPDATE doctors SET department_id=%s, first_name=%s, last_name=%s, "
+                "specialization=%s, phone=%s WHERE doctor_id=%s",
+                (request.form["department_id"], request.form["first_name"],
+                 request.form["last_name"], request.form["specialization"],
+                 request.form["phone"], doctor_id))
+            connection.commit()
+            message = "Doctor updated."
+        except pymysql.MySQLError as error:
+            message = "Could not update: " + str(error.args[1])
+        connection.close()
+        return redirect(url_for("doctors", message=message))
+    cursor.execute(
+        "SELECT doctor_id, department_id, first_name, last_name, specialization, phone "
+        "FROM doctors WHERE doctor_id = %s", (doctor_id,))
+    doctor = cursor.fetchone()
+    cursor.execute("SELECT department_id, dept_name FROM departments ORDER BY dept_name")
+    depts = cursor.fetchall()
+    connection.close()
+    if doctor is None:
+        abort(404)
+    return render_template("edit_doctor.html", doctor=doctor, departments=depts)
+
+
+@app.route("/doctors/delete/<int:doctor_id>", methods=["POST"])
+def delete_doctor(doctor_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM doctors WHERE doctor_id = %s", (doctor_id,))
+        connection.commit()
+        message = "Doctor deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("doctors", message=message))
+
+@app.route("/users")
+def users():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT u.user_id, u.username, u.role,
+               CONCAT(d.first_name, ' ', d.last_name), u.is_active, u.created_at
+        FROM users u
+        LEFT JOIN doctors d ON u.doctor_id = d.doctor_id
+        ORDER BY u.user_id
+    """)
+    rows = cursor.fetchall()
+    cursor.execute("SELECT doctor_id, first_name, last_name FROM doctors ORDER BY last_name")
+    docs = cursor.fetchall()
+    connection.close()
+    return render_template("users.html", users=rows, doctors=docs, message=message)
+
+
+@app.route("/users/add", methods=["POST"])
+def add_user():
+    doctor_id = request.form["doctor_id"] or None   # blank option becomes NULL
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        # SHA2 matches the demo accounts. A real app should use bcrypt.
+        cursor.execute(
+            "INSERT INTO users (username, password_hash, role, doctor_id) "
+            "VALUES (%s, SHA2(%s, 256), %s, %s)",
+            (request.form["username"], request.form["password"],
+             request.form["role"], doctor_id))
+        connection.commit()
+        message = "User added."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("users", message=message))
+
+
+@app.route("/users/delete/<int:user_id>", methods=["POST"])
+def delete_user(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+        connection.commit()
+        message = "User deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("users", message=message))
+
 if __name__ == "__main__":
     app.run(debug=True)

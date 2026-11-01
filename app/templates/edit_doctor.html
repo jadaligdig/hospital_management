@@ -1,0 +1,16 @@
+<h1>Edit {{ doctor[2] }} {{ doctor[3] }}</h1>
+
+<form method="post">
+  <select name="department_id">
+    {% for d in departments %}
+    <option value="{{ d[0] }}" {% if d[0] == doctor[1] %}selected{% endif %}>{{ d[1] }}</option>
+    {% endfor %}
+  </select>
+  <input name="first_name" value="{{ doctor[2] }}">
+  <input name="last_name" value="{{ doctor[3] }}">
+  <input name="specialization" value="{{ doctor[4] }}">
+  <input name="phone" value="{{ doctor[5] }}">
+  <button>Save</button>
+</form>
+
+<a href="/doctors">Back</a>

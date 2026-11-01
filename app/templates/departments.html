@@ -1,0 +1,28 @@
+<h1>Departments</h1>
+
+{% if message %}
+<p style="color:red">{{ message }}</p>
+{% endif %}
+
+<form method="post" action="/departments/add">
+  <input name="dept_name" placeholder="Department name">
+  <input name="location" placeholder="Location">
+  <button>Add</button>
+</form>
+
+<table border="1">
+  <tr><th>Name</th><th>Location</th><th></th></tr>
+  {% for d in departments %}
+  <tr>
+    <td>{{ d[1] }}</td><td>{{ d[2] }}</td>
+    <td>
+      <form method="post" action="/departments/delete/{{ d[0] }}"
+            onsubmit="return confirm('Delete this department?')">
+        <button>Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="/">Back</a>
