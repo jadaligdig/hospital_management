@@ -1,0 +1,32 @@
+<h1>Invoices</h1>
+
+{% if message %}
+<p style="color:red">{{ message }}</p>
+{% endif %}
+
+<form method="post" action="/invoices/add">
+  <input name="admission_id" type="number" placeholder="Admission ID">
+  <input name="room_charge" type="number" step="0.01" placeholder="Room charge" value="0">
+  <input name="lab_charge" type="number" step="0.01" placeholder="Lab charge" value="0">
+  <input name="medicine_charge" type="number" step="0.01" placeholder="Medicine charge" value="0">
+  <button>Create invoice</button>
+</form>
+
+<table border="1">
+  <tr><th>ID</th><th>Admission</th><th>Date</th><th>Room</th><th>Lab</th><th>Medicine</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr>
+  {% for i in invoices %}
+  <tr>
+    <td>{{ i[0] }}</td><td>{{ i[1] }}</td><td>{{ i[2] }}</td>
+    <td>{{ i[3] }}</td><td>{{ i[4] }}</td><td>{{ i[5] }}</td>
+    <td>{{ i[6] }}</td><td>{{ i[7] }}</td><td>{{ i[6] - i[7] }}</td><td>{{ i[8] }}</td>
+    <td>
+      <form method="post" action="/invoices/delete/{{ i[0] }}"
+            onsubmit="return confirm('Delete this invoice?')">
+        <button>Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="/">Back</a>

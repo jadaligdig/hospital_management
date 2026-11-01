@@ -1,0 +1,29 @@
+<h1>Payments</h1>
+
+{% if message %}
+<p style="color:red">{{ message }}</p>
+{% endif %}
+
+<form method="post" action="/payments/add">
+  <input name="invoice_id" type="number" placeholder="Invoice ID">
+  <input name="amount" type="number" step="0.01" placeholder="Amount">
+  <select name="method">
+    <option>Cash</option>
+    <option>Card</option>
+    <option>GCash</option>
+    <option>Insurance</option>
+  </select>
+  <button>Pay</button>
+</form>
+
+<table border="1">
+  <tr><th>ID</th><th>Invoice</th><th>Amount</th><th>Method</th><th>Paid at</th><th>Invoice status</th></tr>
+  {% for p in payments %}
+  <tr>
+    <td>{{ p[0] }}</td><td>{{ p[1] }}</td><td>{{ p[2] }}</td>
+    <td>{{ p[3] }}</td><td>{{ p[4] }}</td><td>{{ p[5] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="/">Back</a>
