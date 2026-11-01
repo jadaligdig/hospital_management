@@ -35,3 +35,24 @@ CREATE TABLE audit_log (
     logged_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_audit_user FOREIGN KEY (performed_by) REFERENCES users(user_id)
 );
+
+INSERT INTO medicines (medicine_name, unit_price, stock_qty, reorder_level, expiry_date) VALUES
+ ('Paracetamol 500mg', 2.50, 500, 100, '2028-03-31'),
+ ('Amoxicillin 500mg', 8.00, 200,  50, '2027-08-31'),
+ ('Metformin 500mg',   4.00, 300,  80, '2027-12-31'),
+ ('Aspirin 80mg',      3.00, 150,  50, '2027-05-31'),
+ ('Amlodipine 5mg',    6.00,  60,  40, '2027-09-30'),
+ ('Ibuprofen 400mg',   5.00, 100,  30, '2026-06-30'),   -- already expired
+ ('Losartan 50mg',     7.50,  80,  30, '2028-01-31');   -- never prescribed (LEFT JOIN demo)
+
+INSERT INTO prescriptions (record_id, medicine_id, quantity, dosage) VALUES
+ (2, 2, 21, '1 capsule 3x a day for 7 days'),
+ (2, 1, 10, '1 tablet every 6 hours if fever'),
+ (3, 3, 60, '1 tablet twice a day');
+
+INSERT INTO prescriptions (record_id, medicine_id, quantity, dosage) VALUES
+ (5, 4, 30, '1 tablet daily'),                  -- Aspirin
+ (5, 1, 20, '1 tablet every 6 hours if pain'),  -- Paracetamol
+ (6, 1, 30, '2 tablets every 6 hours'),
+ (7, 5, 30, '1 tablet daily');                  -- Amlodipine: stock 60 -> 30 triggers LOW STOCK
+
