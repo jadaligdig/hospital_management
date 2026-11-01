@@ -711,5 +711,42 @@ def delete_medicine(medicine_id):
     connection.close()
     return redirect(url_for("medicines", message=message))
 
+@app.route("/accounts-doctors")
+def accounts_doctors():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT u.user_id, u.username, u.role, d.first_name, d.last_name
+        FROM users u
+        LEFT JOIN doctors d ON u.doctor_id = d.doctor_id
+        ORDER BY u.user_id
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("table.html", title="Accounts and linked doctor",
+        headings=["User ID", "Username", "Role", "Doctor first", "Doctor last"], rows=rows)
+
+@app.route("/billing-summary")
+def billing_summary():
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT i.invoice_id, pt.first_name, pt.last_name,
+               (i.room_charge + i.lab_charge + i.medicine_charge) AS total_charges,
+               SUM(p.amount) AS total_paid
+        FROM invoices i
+        INNER JOIN admissions a ON i.admission_id = a.admission_id
+        INNER JOIN patients pt ON a.patient_id = pt.patient_id
+        INNER JOIN payments p ON p.invoice_id = i.invoice_id
+        GROUP BY i.invoice_id, pt.first_name, pt.last_name,
+                 i.room_charge, i.lab_charge, i.medicine_charge
+        ORDER BY i.invoice_id
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("table.html", title="Billing summary",
+        headings=["Invoice", "Patient first", "Patient last", "Total charges", "Total paid"],
+        rows=rows)
+
 if __name__ == "__main__":
     app.run(debug=True)
