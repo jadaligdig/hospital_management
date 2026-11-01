@@ -1,0 +1,44 @@
+<h1>Users</h1>
+
+{% if message %}
+<p style="color:red">{{ message }}</p>
+{% endif %}
+
+<form method="post" action="/users/add">
+  <input name="username" placeholder="Username">
+  <input name="password" type="password" placeholder="Password">
+  <select name="role">
+    <option>Admin</option>
+    <option>Doctor</option>
+    <option>Nurse</option>
+    <option>Cashier</option>
+    <option>Pharmacist</option>
+  </select>
+  <select name="doctor_id">
+    <option value="">(not a doctor)</option>
+    {% for d in doctors %}
+    <option value="{{ d[0] }}">{{ d[1] }} {{ d[2] }}</option>
+    {% endfor %}
+  </select>
+  <button>Add</button>
+</form>
+
+<table border="1">
+  <tr><th>ID</th><th>Username</th><th>Role</th><th>Doctor</th><th>Active</th><th>Created</th><th></th></tr>
+  {% for u in users %}
+  <tr>
+    <td>{{ u[0] }}</td><td>{{ u[1] }}</td><td>{{ u[2] }}</td>
+    <td>{{ u[3] if u[3] else "" }}</td>
+    <td>{{ "Yes" if u[4] else "No" }}</td>
+    <td>{{ u[5] }}</td>
+    <td>
+      <form method="post" action="/users/delete/{{ u[0] }}"
+            onsubmit="return confirm('Delete this user?')">
+        <button>Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="/">Back</a>
