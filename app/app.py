@@ -280,5 +280,160 @@ def delete_patient(patient_id):
     connection.close()
     return redirect(url_for("patients", message=message))
 
+def set_app_user(cursor, user_id):
+    # same variable the sample SQL sets; the triggers read it for the audit trail
+    cursor.execute("SET @app_user_id = %s", (user_id,))
+
+@app.route("/admissions")
+def admissions():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT a.admission_id, a.patient_id,
+               CONCAT(d.first_name, ' ', d.last_name),
+               a.bed_id, a.admit_date, a.discharge_date, a.status, a.reason
+        FROM admissions a
+        INNER JOIN doctors d ON a.doctor_id = d.doctor_id
+        ORDER BY a.admission_id
+    """)
+    rows = cursor.fetchall()
+    cursor.execute("SELECT doctor_id, first_name, last_name FROM doctors ORDER BY last_name")
+    docs = cursor.fetchall()
+    connection.close()
+    return render_template("admissions.html", admissions=rows, doctors=docs, message=message)
+
+
+@app.route("/admissions/add", methods=["POST"])
+def add_admission():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        set_app_user(cursor, 2)
+        cursor.execute(
+            "INSERT INTO admissions (patient_id, doctor_id, bed_id, admit_date, reason) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            (request.form["patient_id"], request.form["doctor_id"],
+             request.form["bed_id"], request.form["admit_date"].replace("T", " "),
+             request.form["reason"]))
+        connection.commit()
+        message = "Patient admitted."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("admissions", message=message))
+
+
+@app.route("/admissions/discharge/<int:admission_id>", methods=["POST"])
+def discharge_admission(admission_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        set_app_user(cursor, 2)
+        cursor.execute(
+            "UPDATE admissions SET discharge_date = %s, status = 'Discharged' "
+            "WHERE admission_id = %s",
+            (request.form["discharge_date"].replace("T", " "), admission_id))
+        connection.commit()
+        message = "Patient discharged."
+    except pymysql.MySQLError as error:
+        message = "Could not discharge: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("admissions", message=message))
+
+
+@app.route("/admissions/delete/<int:admission_id>", methods=["POST"])
+def delete_admission(admission_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM admissions WHERE admission_id = %s", (admission_id,))
+        connection.commit()
+        message = "Admission deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("admissions", message=message))
+
+@app.route("/invoices")
+def invoices():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT invoice_id, admission_id, invoice_date, room_charge, lab_charge,
+               medicine_charge, total_amount, amount_paid, status
+        FROM invoices
+        ORDER BY invoice_id
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("invoices.html", invoices=rows, message=message)
+
+
+@app.route("/invoices/add", methods=["POST"])
+def add_invoice():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        set_app_user(cursor, 2)
+        cursor.execute(
+            "INSERT INTO invoices (admission_id, room_charge, lab_charge, medicine_charge) "
+            "VALUES (%s, %s, %s, %s)",
+            (request.form["admission_id"], request.form["room_charge"],
+             request.form["lab_charge"], request.form["medicine_charge"]))
+        connection.commit()
+        message = "Invoice created."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("invoices", message=message))
+
+
+@app.route("/invoices/delete/<int:invoice_id>", methods=["POST"])
+def delete_invoice(invoice_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute("DELETE FROM invoices WHERE invoice_id = %s", (invoice_id,))
+        connection.commit()
+        message = "Invoice deleted."
+    except pymysql.MySQLError as error:
+        message = "Could not delete: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("invoices", message=message))
+
+@app.route("/payments")
+def payments():
+    message = request.args.get("message")
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT p.payment_id, p.invoice_id, p.amount, p.method, p.paid_at, i.status
+        FROM payments p
+        INNER JOIN invoices i ON p.invoice_id = i.invoice_id
+        ORDER BY p.payment_id
+    """)
+    rows = cursor.fetchall()
+    connection.close()
+    return render_template("payments.html", payments=rows, message=message)
+
+
+@app.route("/payments/add", methods=["POST"])
+def add_payment():
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        set_app_user(cursor, 4)
+        cursor.execute(
+            "INSERT INTO payments (invoice_id, amount, method) VALUES (%s, %s, %s)",
+            (request.form["invoice_id"], request.form["amount"], request.form["method"]))
+        connection.commit()
+        message = "Payment recorded."
+    except pymysql.MySQLError as error:
+        message = "Could not add: " + str(error.args[1])
+    connection.close()
+    return redirect(url_for("payments", message=message))
+
 if __name__ == "__main__":
     app.run(debug=True)
