@@ -1,12 +1,24 @@
-<h1>Edit bed {{ bed[2] }}</h1>
+{% extends 'base.html' %}
+{% block title %}Edit bed{% endblock %}
+{% block content %}
 
-<form method="post">
-  <select name="status">
-    {% for s in ['Available', 'Occupied', 'Maintenance'] %}
-      <option value="{{ s }}" {% if bed[3] == s %}selected{% endif %}>{{ s }}</option>
-    {% endfor %}
-  </select>
-  <button>Save</button>
-</form>
+<a class="back-link" href="/beds">← Back to beds</a>
+<h1>Edit bed</h1>
 
-<a href="/beds">Back</a>
+<div class="form-card narrow">
+  <form method="post" class="form-stack">
+    <label>Room ID <input value="{{ bed[1] }}" disabled></label>
+    <label>Bed number <input value="{{ bed[2] }}" disabled></label>
+    <label>Status
+      <select name="status">
+        <option value="Available" {{ 'selected' if bed[3] == 'Available' }}>Available</option>
+        <option value="Occupied" {{ 'selected' if bed[3] == 'Occupied' }}>Occupied</option>
+      </select>
+    </label>
+    <div class="form-buttons">
+      <button class="btn btn-primary">Save</button>
+      <a class="btn" href="/beds">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

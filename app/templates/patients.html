@@ -1,32 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Patients{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn %}
+
+<a class="back-link" href="/">← Back to home</a>
 <h1>Patients</h1>
+<p class="subtitle">Add, edit and delete patients</p>
+{{ message_box(message) }}
 
-{% if message %}
-<p style="color:red">{{ message }}</p>
-{% endif %}
+<div class="form-card">
+  <h2>Add patient</h2>
+  <form method="post" action="/patients/add" class="form-grid">
+    <label>First name <input name="first_name" required></label>
+    <label>Last name <input name="last_name" required></label>
+    <label>Birth date <input type="date" name="birth_date" required></label>
+    <label>Gender
+      <select name="gender" required>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </label>
+    <label>Phone <input name="phone"></label>
+    <label>Address <input name="address"></label>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</div>
 
-<form method="post" action="/patients/add">
-  <input name="first_name" placeholder="First name">
-  <input name="last_name" placeholder="Last name">
-  <input name="birth_date" type="date">
-  <select name="gender"><option>M</option><option>F</option></select>
-  <input name="phone" placeholder="Phone">
-  <input name="address" placeholder="Address">
-  <button>Add</button>
-</form>
-
-<table border="1">
-  <tr><th>First</th><th>Last</th><th>Birth date</th><th>Gender</th><th>Phone</th><th>Address</th><th></th><th></th></tr>
-  {% for p in patients %}
-    <tr>
-      <td>{{ p[1] }}</td><td>{{ p[2] }}</td><td>{{ p[3] }}</td>
-      <td>{{ p[4] }}</td><td>{{ p[5] }}</td><td>{{ p[6] }}</td>
-      <td><a href="/patients/edit/{{ p[0] }}">Edit</a></td>
-      <td>
-        <form method="post" action="/patients/delete/{{ p[0] }}"
-              onsubmit="return confirm('Delete this patient?')">
-          <button>Delete</button>
-        </form>
-      </td>
-    </tr>
-  {% endfor %}
-</table>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>First name</th><th>Last name</th><th>Birth date</th>
+          <th>Gender</th><th>Phone</th><th>Address</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in patients %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td><td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td>
+        <td>{% if r[5] %}{{ r[5] }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>{% if r[6] %}{{ r[6] }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td class="actions">
+          <a class="btn btn-small" href="/patients/edit/{{ r[0] }}">Edit</a>
+          {{ delete_btn('/patients/delete/' ~ r[0]) }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="empty-row">No patients yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -135,7 +135,7 @@ def departments_rooms():
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("home.html")
 
 @app.route("/beds")
 def beds():
@@ -419,17 +419,14 @@ def invoices():
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("""
-        SELECT d.doctor_id, d.first_name, d.last_name, d.specialization,
-               d.phone, p.dept_name
-        FROM doctors d
-        INNER JOIN departments p ON d.department_id = p.department_id
-        ORDER BY d.last_name
+        SELECT invoice_id, admission_id, invoice_date, room_charge, lab_charge,
+               medicine_charge, total_amount, amount_paid, status
+        FROM invoices
+        ORDER BY invoice_id
     """)
     rows = cursor.fetchall()
-    cursor.execute("SELECT department_id, dept_name FROM departments ORDER BY dept_name")
-    depts = cursor.fetchall()
     connection.close()
-    return render_template("doctors.html", doctors=rows, departments=depts, message=message)
+    return render_template("invoices.html", invoices=rows, message=message)
 
 
 @app.route("/doctors/add", methods=["POST"])
@@ -545,6 +542,7 @@ def delete_user(user_id):
         message = "Could not delete: " + str(error.args[1])
     connection.close()
     return redirect(url_for("users", message=message))
+
     @app.route("/invoices")
     def invoices():
         message = request.args.get("message")
