@@ -1,32 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn, badge %}
+
+<a class="back-link" href="/">← Back to home</a>
 <h1>Invoices</h1>
+<p class="subtitle">Create and delete invoices</p>
+{{ message_box(message) }}
 
-{% if message %}
-<p style="color:red">{{ message }}</p>
-{% endif %}
+<div class="form-card">
+  <h2>Create invoice</h2>
+  <form method="post" action="/invoices/add" class="form-grid">
+    <label>Admission ID <input type="number" name="admission_id" required></label>
+    <label>Room charge <input type="number" step="0.01" name="room_charge" value="0" required></label>
+    <label>Lab charge <input type="number" step="0.01" name="lab_charge" value="0" required></label>
+    <label>Medicine charge <input type="number" step="0.01" name="medicine_charge" value="0" required></label>
+    <button class="btn btn-primary">Create</button>
+  </form>
+</div>
 
-<form method="post" action="/invoices/add">
-  <input name="admission_id" type="number" placeholder="Admission ID">
-  <input name="room_charge" type="number" step="0.01" placeholder="Room charge" value="0">
-  <input name="lab_charge" type="number" step="0.01" placeholder="Lab charge" value="0">
-  <input name="medicine_charge" type="number" step="0.01" placeholder="Medicine charge" value="0">
-  <button>Create invoice</button>
-</form>
-
-<table border="1">
-  <tr><th>ID</th><th>Admission</th><th>Date</th><th>Room</th><th>Lab</th><th>Medicine</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th></th></tr>
-  {% for i in invoices %}
-  <tr>
-    <td>{{ i[0] }}</td><td>{{ i[1] }}</td><td>{{ i[2] }}</td>
-    <td>{{ i[3] }}</td><td>{{ i[4] }}</td><td>{{ i[5] }}</td>
-    <td>{{ i[6] }}</td><td>{{ i[7] }}</td><td>{{ i[6] - i[7] }}</td><td>{{ i[8] }}</td>
-    <td>
-      <form method="post" action="/invoices/delete/{{ i[0] }}"
-            onsubmit="return confirm('Delete this invoice?')">
-        <button>Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-<a href="/">Back</a>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>Admission</th><th>Date</th><th>Room</th><th>Lab</th>
+          <th>Medicine</th><th>Total</th><th>Paid</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in invoices %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td><td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td><td>{{ r[5] }}</td><td>{{ r[6] }}</td><td>{{ r[7] }}</td>
+        <td>{{ badge(r[8]) }}</td>
+        <td class="actions">{{ delete_btn('/invoices/delete/' ~ r[0]) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="10" class="empty-row">No invoices yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

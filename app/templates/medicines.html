@@ -1,32 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Medicines{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn %}
+
+<a class="back-link" href="/">← Back to home</a>
 <h1>Medicines</h1>
+<p class="subtitle">Rows highlighted in orange are at or below the reorder level</p>
+{{ message_box(message) }}
 
-{% if message %}
-<p style="color:red">{{ message }}</p>
-{% endif %}
+<div class="form-card">
+  <h2>Add medicine</h2>
+  <form method="post" action="/medicines/add" class="form-grid">
+    <label>Medicine name <input name="medicine_name" required></label>
+    <label>Unit price <input type="number" step="0.01" name="unit_price" required></label>
+    <label>Stock qty <input type="number" name="stock_qty" required></label>
+    <label>Reorder level <input type="number" name="reorder_level" required></label>
+    <label>Expiry date <input type="date" name="expiry_date" required></label>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</div>
 
-<form method="post" action="/medicines/add">
-  <input name="medicine_name" placeholder="Medicine name">
-  <input name="unit_price" type="number" step="0.01" placeholder="Unit price">
-  <input name="stock_qty" type="number" placeholder="Stock">
-  <input name="reorder_level" type="number" placeholder="Reorder level" value="20">
-  <input name="expiry_date" type="date">
-  <button>Add</button>
-</form>
-
-<table border="1">
-  <tr><th>Name</th><th>Price</th><th>Stock</th><th>Reorder level</th><th>Expiry</th><th>Alert</th><th></th><th></th></tr>
-  {% for m in medicines %}
-    <tr>
-      <td>{{ m[1] }}</td><td>{{ m[2] }}</td><td>{{ m[3] }}</td>
-      <td>{{ m[4] }}</td><td>{{ m[5] }}</td>
-      <td>{% if m[3] <= m[4] %}<b style="color:red">LOW STOCK</b>{% endif %}</td>
-      <td><a href="/medicines/edit/{{ m[0] }}">Edit</a></td>
-      <td>
-        <form method="post" action="/medicines/delete/{{ m[0] }}"
-              onsubmit="return confirm('Delete this medicine?')">
-          <button>Delete</button>
-        </form>
-      </td>
-    </tr>
-  {% endfor %}
-</table>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>Medicine</th><th>Unit price</th><th>Stock</th>
+          <th>Reorder level</th><th>Expiry</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in medicines %}
+      <tr class="{{ 'low-stock' if r[3] <= r[4] }}">
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td><td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td><td>{{ r[5] }}</td>
+        <td class="actions">
+          <a class="btn btn-small" href="/medicines/edit/{{ r[0] }}">Edit</a>
+          {{ delete_btn('/medicines/delete/' ~ r[0]) }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="empty-row">No medicines yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,28 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Departments{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn %}
+
+<a class="back-link" href="/">← Back to home</a>
 <h1>Departments</h1>
+<p class="subtitle">Add and delete departments</p>
+{{ message_box(message) }}
 
-{% if message %}
-<p style="color:red">{{ message }}</p>
-{% endif %}
+<div class="form-card">
+  <h2>Add department</h2>
+  <form method="post" action="/departments/add" class="form-grid">
+    <label>Department name <input name="dept_name" required></label>
+    <label>Location <input name="location" required></label>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</div>
 
-<form method="post" action="/departments/add">
-  <input name="dept_name" placeholder="Department name">
-  <input name="location" placeholder="Location">
-  <button>Add</button>
-</form>
-
-<table border="1">
-  <tr><th>Name</th><th>Location</th><th></th></tr>
-  {% for d in departments %}
-  <tr>
-    <td>{{ d[1] }}</td><td>{{ d[2] }}</td>
-    <td>
-      <form method="post" action="/departments/delete/{{ d[0] }}"
-            onsubmit="return confirm('Delete this department?')">
-        <button>Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-<a href="/">Back</a>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Department</th><th>Location</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for r in departments %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td>
+        <td class="actions">{{ delete_btn('/departments/delete/' ~ r[0]) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="empty-row">No departments yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

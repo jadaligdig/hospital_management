@@ -1,35 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Beds{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn, badge %}
+
+<a class="back-link" href="/">← Back to home</a>
 <h1>Beds</h1>
+<p class="subtitle">Add, edit and delete beds</p>
+{{ message_box(message) }}
 
-{% if message %}
-<p style="color:red">{{ message }}</p>
-{% endif %}
+<div class="form-card">
+  <h2>Add bed</h2>
+  <form method="post" action="/beds/add" class="form-grid">
+    <label>Room ID <input type="number" name="room_id" required></label>
+    <label>Bed number <input name="bed_no" required></label>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</div>
 
-<form method="post" action="/beds/add">
-  <input name="room_id" type="number" placeholder="Room ID">
-  <input name="bed_no" placeholder="Bed no (e.g. B3)">
-  <button>Add</button>
-</form>
-
-<table border="1">
-  <tr>
-    <th>Room ID</th>
-    <th>Bed</th>
-    <th>Status</th>
-    <th></th>
-    <th></th>
-  </tr>
-  {% for b in beds %}
-    <tr>
-      <td>{{ b[1] }}</td>
-      <td>{{ b[2] }}</td>
-      <td>{{ b[3] }}</td>
-      <td><a href="/beds/edit/{{ b[0] }}">Edit</a></td>
-      <td>
-        <form method="post" action="/beds/delete/{{ b[0] }}"
-              onsubmit="return confirm('Delete this bed?')">
-          <button>Delete</button>
-        </form>
-      </td>
-    </tr>
-  {% endfor %}
-</table>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Room ID</th><th>Bed no</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for r in beds %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td>
+        <td>{{ badge(r[3]) }}</td>
+        <td class="actions">
+          <a class="btn btn-small" href="/beds/edit/{{ r[0] }}">Edit</a>
+          {{ delete_btn('/beds/delete/' ~ r[0]) }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="empty-row">No beds yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

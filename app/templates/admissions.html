@@ -1,46 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Admissions{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn, badge %}
+
+<a class="back-link" href="/">← Back to home</a>
 <h1>Admissions</h1>
+<p class="subtitle">Admit, discharge and delete admissions</p>
+{{ message_box(message) }}
 
-{% if message %}
-<p style="color:red">{{ message }}</p>
-{% endif %}
+<div class="form-card">
+  <h2>Admit patient</h2>
+  <form method="post" action="/admissions/add" class="form-grid">
+    <label>Patient ID <input type="number" name="patient_id" required></label>
+    <label>Doctor
+      <select name="doctor_id" required>
+        {% for d in doctors %}<option value="{{ d[0] }}">{{ d[1] }} {{ d[2] }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Bed ID <input type="number" name="bed_id" required></label>
+    <label>Admit date <input type="datetime-local" name="admit_date" required></label>
+    <label>Reason <input name="reason" required></label>
+    <button class="btn btn-primary">Admit</button>
+  </form>
+</div>
 
-<form method="post" action="/admissions/add">
-  <input name="patient_id" type="number" placeholder="Patient ID">
-  <select name="doctor_id">
-    {% for d in doctors %}
-    <option value="{{ d[0] }}">{{ d[1] }} {{ d[2] }}</option>
-    {% endfor %}
-  </select>
-  <input name="bed_id" type="number" placeholder="Bed ID">
-  <input name="admit_date" type="datetime-local">
-  <input name="reason" placeholder="Reason">
-  <button>Admit</button>
-</form>
-
-<table border="1">
-  <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Bed</th><th>Admitted</th><th>Discharged</th><th>Status</th><th>Reason</th><th></th><th></th></tr>
-  {% for a in admissions %}
-  <tr>
-    <td>{{ a[0] }}</td><td>{{ a[1] }}</td><td>{{ a[2] }}</td><td>{{ a[3] }}</td>
-    <td>{{ a[4] }}</td>
-    <td>{{ a[5] if a[5] else "" }}</td>
-    <td>{{ a[6] }}</td><td>{{ a[7] }}</td>
-    <td>
-      {% if a[6] == "Admitted" %}
-      <form method="post" action="/admissions/discharge/{{ a[0] }}">
-        <input name="discharge_date" type="datetime-local" required>
-        <button>Discharge</button>
-      </form>
-      {% endif %}
-    </td>
-    <td>
-      <form method="post" action="/admissions/delete/{{ a[0] }}"
-            onsubmit="return confirm('Delete this admission?')">
-        <button>Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-
-<a href="/">Back</a>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>Patient ID</th><th>Doctor</th><th>Bed ID</th><th>Admit date</th>
+          <th>Discharge date</th><th>Status</th><th>Reason</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in admissions %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td><td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td>
+        <td>{% if r[5] %}{{ r[5] }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>{{ badge(r[6]) }}</td>
+        <td>{{ r[7] }}</td>
+        <td class="actions">
+          {% if r[6] != 'Discharged' %}
+          <form method="post" action="/admissions/discharge/{{ r[0] }}" class="inline">
+            <input type="datetime-local" name="discharge_date" class="inline-input" required>
+            <button class="btn btn-small btn-primary">Discharge</button>
+          </form>
+          {% endif %}
+          {{ delete_btn('/admissions/delete/' ~ r[0]) }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="empty-row">No admissions yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
