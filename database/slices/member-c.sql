@@ -37,3 +37,16 @@ CREATE TABLE payments (
     CONSTRAINT chk_pay_amount CHECK (amount > 0),
     CONSTRAINT fk_pay_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id)
 );
+
+SET @app_user_id = 2;    -- dr.delacruz is logged in
+INSERT INTO admissions (patient_id, doctor_id, bed_id, admit_date, reason) VALUES
+ (1, 3, 1, '2026-10-12 12:00:00', 'Suspected cardiac event'),    -- admission 1 (W-101 B1)
+ (5, 5, 3, '2026-10-14 13:00:00', 'Appendicitis, for surgery'),  -- admission 2 (P-201 B1)
+ (4, 3, 2, '2026-10-16 08:00:00', 'Hypertensive urgency');       -- admission 3 (W-101 B2), still admitted
+
+SET @app_user_id = 4;    -- cashier1 is logged in
+INSERT INTO payments (invoice_id, amount, method) VALUES
+ (1, 3000.00, 'Cash'),    -- invoice 1 becomes Partial
+ (1, 3140.00, 'Card'),    -- invoice 1 becomes Paid
+ (2, 2000.00, 'GCash');   -- invoice 2 becomes Partial
+

@@ -1,48 +1,92 @@
-Member C — Billing Summary
+\# Member C: Admissions, Invoices, Payments
 
-Member: KC Cimafranca
-Assigned Tables: Admissions, Invoices, Payments
-Feature: Transactions
-Query Report: R7 Billing Summary
 
-1. Table Descriptions
 
-Admissions
+\## What I built
 
-The admissions table stores information about patients admitted to the hospital. It includes the patient ID, doctor ID, bed ID, admission date, discharge date, status, and reason for admission.
+\- `/admissions`: list, admit, discharge and delete admissions. The list uses an INNER JOIN with `doctors` to show the doctor's name.
 
-Invoices
+\- `/invoices`: list, create and delete invoices. Each row shows the total, the amount paid, the balance and the status.
 
-The invoices table stores billing information for each admission. It includes room charges, laboratory charges, medicine charges, total amount, amount paid, and payment status.
+\- `/payments`: list and record payments. The list uses an INNER JOIN with `invoices` to show each invoice's current status beside the payment.
 
-Payments
+\- Links to Admissions, Invoices and Payments added to `index.html`
 
-The payments table stores payment transactions. It includes the payment ID, invoice ID, amount, payment method, and payment date.
+\- Every database error is caught and shown in red at the top of the page, so the app never crashes on a constraint violation.
 
-2. Table Relationships
 
-- Patients — Admissions: One patient can have many admissions.
-- Doctors — Admissions: One doctor can handle many admissions.
-- Beds — Admissions: One bed can be used for different admissions over time.
-- Admissions — Invoices: Each admission can have only one invoice.
-- Invoices — Payments: One invoice can have multiple payments.
 
-3. R7 Billing Summary
+\## Audit trail
 
-The R7 Billing Summary uses an INNER JOIN between the invoices and payments tables. It displays invoice details together with their related payment records.
+Before each write, the app runs `SET @app\_user\_id = <user>` (user 2 `dr.delacruz` for admissions and invoices, user 4 `cashier1` for payments). The database triggers read this variable to fill `audit\_log.performed\_by`, so changes are logged against the right user.
 
-4. Test Results
 
-The SQL query was tested using the separate "scratch_c" practice database.
 
-- Three admissions were inserted successfully.
-- Three invoices were inserted successfully.
-- Three payment records were inserted successfully.
-- The R7 Billing Summary returned three rows.
-- Invoice 1 appeared twice because it had two payments.
-- Invoice 2 appeared once because it had one payment.
-- Invoice 3 did not appear because it had no matching payment.
+\## Tables
 
-5. Why INNER JOIN Is Used
+`admissions`, `invoices` and `payments` (see `database/slices/member-c.sql`).
 
-INNER JOIN is used because the report should show invoices that have matching payment records. Invoices without payments are not displayed in this report.
+
+
+| Table | Constraints used in the tests |
+
+|-------|-------------------------------|
+
+| `admissions` | `chk\_discharge\_after\_admit` CHECK, `fk\_adm\_patient`, `fk\_adm\_doctor`, `fk\_adm\_bed` FOREIGN KEYs |
+
+| `invoices` | `admission\_id` UNIQUE, `chk\_inv\_paid` CHECK, `fk\_inv\_adm` FOREIGN KEY. `total\_amount` is a generated column. |
+
+| `payments` | `chk\_pay\_amount` CHECK, `fk\_pay\_invoice` FOREIGN KEY |
+
+
+
+\## Joins
+
+| Page | Join | Why |
+
+|------|------|-----|
+
+| `/admissions` | INNER JOIN `admissions` and `doctors` | Every admission has a doctor (`doctor\_id` is NOT NULL), so no rows are lost. |
+
+| `/payments` | INNER JOIN `payments` and `invoices` | Every payment belongs to an invoice, and the page shows that invoice's status. |
+
+
+
+\## Tests
+
+
+
+| Test | Page | What I did | Result |
+
+|------|------|-----------|--------|
+
+| 1062 | `/invoices` | Created an invoice for admission 1, which already has one | `Duplicate entry '1' for key 'invoices.admission\_id'` |
+
+| 3819 | `/payments` | Recorded a payment with an amount that is not greater than 0 | `Check constraint 'chk\_pay\_amount' is violated.` |
+
+| 1451 | `/invoices` | Deleted an invoice that has payments | `Cannot delete or update a parent row ... CONSTRAINT 'fk\_pay\_invoice' FOREIGN KEY ('invoice\_id') REFERENCES 'invoices'` |
+
+| INNER JOIN | `/admissions` | Opened the page | Each admission shows the doctor's full name (for example Ramon Dela Cruz and Jose Garcia) |
+
+| INNER JOIN | `/payments` | Opened the page | Each payment shows its invoice's status (Paid or Partial) |
+
+
+
+\## Sample data
+
+\- Three admissions: two discharged and one still admitted (admission 3), so the Discharge form has a visible case.
+
+\- Two invoices: invoice 1 is Paid (balance 0.00) and invoice 2 is Partial (balance 5425.00).
+
+\- Three payments, using Cash, Card and GCash.
+
+
+
+\## Notes
+
+\- The forms need every field filled in. Empty values fail the MySQL type check before the constraint tests apply.
+
+\- `total\_amount` is generated by MySQL, so the app never inserts it.
+
+\- Invoice status, `amount\_paid` and freeing the bed on discharge are handled by database triggers, not by the app.
+

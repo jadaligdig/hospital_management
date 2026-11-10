@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Users{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn, badge %}
+
+<a class="back-link" href="/">← Back to home</a>
+<h1>Users</h1>
+<p class="subtitle">Add and delete user accounts</p>
+{{ message_box(message) }}
+
+<div class="form-card">
+  <h2>Add user</h2>
+  <form method="post" action="/users/add" class="form-grid">
+    <label>Username <input name="username" required></label>
+    <label>Password <input type="password" name="password" required></label>
+    <label>Role <input name="role" placeholder="e.g. Admin" required></label>
+    <label>Linked doctor
+      <select name="doctor_id">
+        <option value="">None</option>
+        {% for d in doctors %}<option value="{{ d[0] }}">{{ d[1] }} {{ d[2] }}</option>{% endfor %}
+      </select>
+    </label>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>Username</th><th>Role</th><th>Doctor</th>
+          <th>Active</th><th>Created</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in users %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td>
+        <td>{% if r[3] %}{{ r[3] }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>{{ badge('Yes' if r[4] else 'No') }}</td>
+        <td>{{ r[5] }}</td>
+        <td class="actions">{{ delete_btn('/users/delete/' ~ r[0]) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="empty-row">No users yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

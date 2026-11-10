@@ -13,7 +13,7 @@
 --  MAJOR FEATURE: Inpatient flow with automatic bed control and automatic billing
 --    admit    -> bed becomes Occupied (blocked if bed is taken / patient already admitted)
 --    prescribe-> stock is checked, expired medicine is blocked, price is snapshotted,
---                stock is deducted, low stock shows up in v_low_stock
+--                stock is deducted, low stock shows up in v_stock_alerts
 --    discharge-> bed becomes Available, invoice is generated (nights x room rate
 --                + lab tests + medicines) inside one transaction
 --    pay      -> invoice moves Unpaid -> Partial -> Paid, overpayment is blocked
