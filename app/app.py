@@ -100,12 +100,12 @@ def delete_lab_test(test_id):
     connection.close()
     return redirect(url_for("lab_tests", message=message))
 
-@app.route("/bed-board")
+@app.route("/@app.route("/bed-board")
 def bed_board():
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("""
-        SELECT r.room_no, r.room_type, b.bed_no, b.status
+        SELECT b.bed_id, r.room_no, r.room_type, b.bed_no, b.status
         FROM beds b
         RIGHT JOIN rooms r ON b.room_id = r.room_id
         ORDER BY r.room_no, b.bed_no
@@ -113,7 +113,7 @@ def bed_board():
     rows = cursor.fetchall()
     connection.close()
     return render_template("table.html", title="Bed board",
-        headings=["Room", "Type", "Bed", "Status"], rows=rows)
+        headings=["Bed ID", "Room", "Type", "Bed", "Status"], rows=rows)
 
 @app.route("/departments-rooms")
 def departments_rooms():
