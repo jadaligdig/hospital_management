@@ -731,7 +731,8 @@ def billing_summary():
     cursor.execute("""
         SELECT i.invoice_id, pt.first_name, pt.last_name,
                (i.room_charge + i.lab_charge + i.medicine_charge) AS total_charges,
-               SUM(p.amount) AS total_paid
+               SUM(p.amount) AS total_paid,
+               (i.room_charge + i.lab_charge + i.medicine_charge) - SUM(p.amount) AS unpaid
         FROM invoices i
         INNER JOIN admissions a ON i.admission_id = a.admission_id
         INNER JOIN patients pt ON a.patient_id = pt.patient_id
@@ -743,7 +744,7 @@ def billing_summary():
     rows = cursor.fetchall()
     connection.close()
     return render_template("table.html", title="Billing summary",
-        headings=["Invoice", "Patient first", "Patient last", "Total charges", "Total paid"],
+        headings=["Invoice", "Patient first", "Patient last", "Total charges", "Total paid", "Unpaid"],
         rows=rows)
 
 if __name__ == "__main__":
