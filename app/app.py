@@ -100,7 +100,7 @@ def delete_lab_test(test_id):
     connection.close()
     return redirect(url_for("lab_tests", message=message))
 
-@app.route("/@app.route("/bed-board")
+@app.route(("/bed-board)
 def bed_board():
     connection = get_connection()
     cursor = connection.cursor()
