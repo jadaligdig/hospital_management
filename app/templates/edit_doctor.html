@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Edit doctor{% endblock %}
+{% block content %}
+
+<a class="back-link" href="/doctors">← Back to doctors</a>
+<h1>Edit doctor</h1>
+
+<div class="form-card narrow">
+  <form method="post" class="form-stack">
+    <label>Department
+      <select name="department_id">
+        {% for d in departments %}
+        <option value="{{ d[0] }}" {{ 'selected' if d[0] == doctor[1] }}>{{ d[1] }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>First name <input name="first_name" value="{{ doctor[2] }}" required></label>
+    <label>Last name <input name="last_name" value="{{ doctor[3] }}" required></label>
+    <label>Specialization <input name="specialization" value="{{ doctor[4] }}" required></label>
+    <label>Phone <input name="phone" value="{{ doctor[5] }}" required></label>
+    <div class="form-buttons">
+      <button class="btn btn-primary">Save</button>
+      <a class="btn" href="/doctors">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

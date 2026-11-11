@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Doctors{% endblock %}
+{% block content %}
+{% from 'macros.html' import message_box, delete_btn %}
+
+<a class="back-link" href="/">← Back to home</a>
+<h1>Doctors</h1>
+<p class="subtitle">Add, edit and delete doctors</p>
+{{ message_box(message) }}
+
+<div class="form-card">
+  <h2>Add doctor</h2>
+  <form method="post" action="/doctors/add" class="form-grid">
+    <label>Department
+      <select name="department_id" required>
+        {% for d in departments %}<option value="{{ d[0] }}">{{ d[1] }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>First name <input name="first_name" required></label>
+    <label>Last name <input name="last_name" required></label>
+    <label>Specialization <input name="specialization" required></label>
+    <label>Phone <input name="phone" required></label>
+    <button class="btn btn-primary">Add</button>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>ID</th><th>First name</th><th>Last name</th><th>Specialization</th>
+          <th>Phone</th><th>Department</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in doctors %}
+      <tr>
+        <td>{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td><td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td><td>{{ r[5] }}</td>
+        <td class="actions">
+          <a class="btn btn-small" href="/doctors/edit/{{ r[0] }}">Edit</a>
+          {{ delete_btn('/doctors/delete/' ~ r[0]) }}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="empty-row">No doctors yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

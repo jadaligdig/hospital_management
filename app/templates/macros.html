@@ -1,0 +1,14 @@
+{% macro message_box(msg) %}
+  {% if msg %}<div class="alert">{{ msg }}</div>{% endif %}
+{% endmacro %}
+
+{% macro badge(value) %}
+  <span class="badge badge-{{ value|string|lower|replace(' ', '-') }}">{{ value }}</span>
+{% endmacro %}
+
+{% macro delete_btn(url) %}
+  <form method="post" action="{{ url }}" class="inline"
+        onsubmit="return confirm('Delete this record?')">
+    <button class="btn btn-small btn-danger">Delete</button>
+  </form>
+{% endmacro %}
