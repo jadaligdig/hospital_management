@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Hospital Management{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <div class="navbar">
+    <a href="/">🏥 Hospital Management</a>
+  </div>
+
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+</body>
+</html>
