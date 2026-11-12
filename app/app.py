@@ -105,7 +105,7 @@ def bed_board():
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("""
-        SELECT b.bed_id, r.room_no, r.room_type, b.bed_no, b.status
+        SELECT b.bed_id, r.room_no, r.room_type, r.daily_rate, b.bed_no, b.status
         FROM beds b
         RIGHT JOIN rooms r ON b.room_id = r.room_id
         ORDER BY r.room_no, b.bed_no
@@ -113,8 +113,8 @@ def bed_board():
     rows = cursor.fetchall()
     connection.close()
     return render_template("table.html", title="Bed board",
-        headings=["Bed ID", "Room", "Type", "Bed", "Status"], rows=rows)
-
+        headings=["Bed ID", "Room", "Type", "Rate/day", "Bed", "Status"], rows=rows)
+    
 @app.route("/departments-rooms")
 def departments_rooms():
     connection = get_connection()
@@ -731,7 +731,8 @@ def billing_summary():
     cursor.execute("""
         SELECT i.invoice_id, pt.first_name, pt.last_name,
                (i.room_charge + i.lab_charge + i.medicine_charge) AS total_charges,
-               SUM(p.amount) AS total_paid
+               SUM(p.amount) AS total_paid,
+               (i.room_charge + i.lab_charge + i.medicine_charge) - SUM(p.amount) AS unpaid
         FROM invoices i
         INNER JOIN admissions a ON i.admission_id = a.admission_id
         INNER JOIN patients pt ON a.patient_id = pt.patient_id
@@ -743,7 +744,7 @@ def billing_summary():
     rows = cursor.fetchall()
     connection.close()
     return render_template("table.html", title="Billing summary",
-        headings=["Invoice", "Patient first", "Patient last", "Total charges", "Total paid"],
+        headings=["Invoice", "Patient first", "Patient last", "Total charges", "Total paid", "Unpaid"],
         rows=rows)
 
 if __name__ == "__main__":
