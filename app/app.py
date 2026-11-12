@@ -367,7 +367,7 @@ def add_admission():
     connection = get_connection()
     cursor = connection.cursor()
     try:
-        set_app_user(cursor, 2)
+        set_app_user(cursor, 6)
         cursor.execute(
             "INSERT INTO admissions (patient_id, doctor_id, bed_id, admit_date, reason) "
             "VALUES (%s, %s, %s, %s, %s)",
